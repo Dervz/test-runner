@@ -52,13 +52,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # 8. Upload build artifacts
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: build
-          path: dist/
-
       # 9. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
