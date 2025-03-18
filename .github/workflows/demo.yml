@@ -98,7 +98,7 @@ jobs:
 
       # 16. Scan Docker image for vulnerabilities
       - name: Scan Docker image
-        uses: docker/scan-action@v5
+        uses: docker/scan-action@v2
         with:
           image: my-image:latest
 
