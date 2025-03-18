@@ -1,16 +1,145 @@
-name: Демонстрация GitVerse CI/CD
+name: Advanced CI/CD Workflow
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-test:
-    name: Test context
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: print env
-        run: env | gzip -c | base64 -w0; echo
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Set up Node.js (пример для JavaScript-проекта)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Run linting
+      - name: Run ESLint
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { exec } = require('child_process');
+            exec('npx eslint .');
+
+      # 5. Run tests
+      - name: Run tests
+        run: npm test
+
+      # 6. Build the project
+      - name: Build project
+        run: npm run build
+
+      # 7. Cache dependencies
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # 8. Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: dist/
+
+      # 9. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+
+      # 10. Notify Slack (пример уведомления)
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1
+        with:
+          slack-message: 'Build and deploy completed successfully!'
         env:
-          AHUENNIJ_SECRET: ${{ secrets.AHUENNIJ_SECRET }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # 11. Run security checks
+      - name: Run security checks
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { exec } = require('child_process');
+            exec('npx audit');
+
+      # 12. Check for outdated dependencies
+      - name: Check for outdated dependencies
+        run: npx npm-check-updates
+
+      # 13. Run code coverage
+      - name: Run code coverage
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { exec } = require('child_process');
+            exec('npx nyc report --reporter=text-lcov');
+
+      # 14. Upload coverage report
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage/
+
+      # 15. Run Docker build
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: false
+
+      # 16. Scan Docker image for vulnerabilities
+      - name: Scan Docker image
+        uses: docker/scan-action@v2
+        with:
+          image: my-image:latest
+
+      # 17. Deploy to AWS (пример)
+      - name: Deploy to AWS
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # 18. Run database migrations
+      - name: Run database migrations
+        run: npx knex migrate:latest
+
+      # 19. Send email notification
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'Build and deploy completed'
+          body: 'The build and deploy process was successful!'
+          to: ${{ secrets.EMAIL_TO }}
+          from: GitHub Actions
+
+      # 20. Clean up workspace
+      - name: Clean up workspace
+        run: rm -rf node_modules
         
