@@ -15,11 +15,11 @@ jobs:
     steps:
       # 1. Checkout code
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2. Set up Node.js (пример для JavaScript-проекта)
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
@@ -29,11 +29,7 @@ jobs:
 
       # 4. Run linting
       - name: Run ESLint
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { exec } = require('child_process');
-            exec('npx eslint .');
+        run: npx eslint .
 
       # 5. Run tests
       - name: Run tests
@@ -45,16 +41,23 @@ jobs:
 
       # 7. Cache dependencies
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
+      # 8. Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: dist/
+
       # 9. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
@@ -69,11 +72,7 @@ jobs:
 
       # 11. Run security checks
       - name: Run security checks
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { exec } = require('child_process');
-            exec('npx audit');
+        run: npx audit
 
       # 12. Check for outdated dependencies
       - name: Check for outdated dependencies
@@ -81,22 +80,18 @@ jobs:
 
       # 13. Run code coverage
       - name: Run code coverage
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { exec } = require('child_process');
-            exec('npx nyc report --reporter=text-lcov');
+        run: npx nyc report --reporter=text-lcov
 
       # 14. Upload coverage report
       - name: Upload coverage report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage/
 
       # 15. Run Docker build
       - name: Build Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: false
@@ -109,7 +104,7 @@ jobs:
 
       # 17. Deploy to AWS (пример)
       - name: Deploy to AWS
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -135,4 +130,3 @@ jobs:
       # 20. Clean up workspace
       - name: Clean up workspace
         run: rm -rf node_modules
-        
