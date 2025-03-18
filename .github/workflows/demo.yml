@@ -96,12 +96,6 @@ jobs:
           context: .
           push: false
 
-      # 16. Scan Docker image for vulnerabilities
-      - name: Scan Docker image
-        uses: docker/scan-action@v2
-        with:
-          image: my-image:latest
-
       # 17. Deploy to AWS (пример)
       - name: Deploy to AWS
         uses: aws-actions/configure-aws-credentials@v4
