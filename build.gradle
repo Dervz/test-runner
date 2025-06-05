@@ -1,0 +1,17 @@
+Перенос по строкам
+plugins {
+  id 'java'
+}
+
+group 'org.olegzhr'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'org.projectlombok:lombok:1.18.22'
+}
