@@ -5,23 +5,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: Install Russian trusted CA certificates
+        run: |
           wget https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt
           wget https://gu-st.ru/content/lending/russian_trusted_sub_ca_pem.crt
-          mkdir /usr/local/share/ca-certificates/russian_trusted
+          mkdir -p /usr/local/share/ca-certificates/russian_trusted
           cp russian_trusted_root_ca_pem.crt russian_trusted_sub_ca_pem.crt /usr/local/share/ca-certificates/russian_trusted
           update-ca-certificates -v
           wget -qS --spider --max-redirect=0 https://www.sberbank.ru
-      - name: Checkout sources2
+      
+      - name: Checkout sources
         uses: actions/checkout@v4
+      
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
+      
       - name: Setup Gradle
-        uses: gradle/actions/action@v4.4.0
+        uses: gradle/actions/setup-gradle@v4.4.0
         with:
           gradle-version: "8.10"
+      
       - name: Build project
-        run: gradle build 
+        run: gradle build
